@@ -6,13 +6,51 @@ services:
     restart: always
     container_name: minitwitter-postgres
     ports:
-      - "54321:5432"
+      - "5432:5432"
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
       POSTGRES_DB: minitwitter
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
+  db-init:
+    image: jl115/backend
+    container_name: minitwitter-db-init
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgres://user:password@db:5432/minitwitter
+    command: npm run db:init
+    restart: "no"
+
+  localhost:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    restart: always
+    container_name: minitwitter-backend
+    ports:
+      - "9091:9091"
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgres://user:password@db:5432/minitwitter
+      command: npm run start
+
+  frontend:
+    image: jl115/frontend
+    restart: always
+    container_name: minitwitter-frontend
+    ports:
+      - "9090:9090"
+    depends_on:
+      - localhost
+    environment:
+      VUE_APP_BACKEND_URL: http://localhost:9091
+networks:
+  default:
+    driver: bridge
 
 volumes:
   postgres_data:

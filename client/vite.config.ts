@@ -16,6 +16,7 @@ export default defineConfig({
     }
   },
   server: {
-    port: 9090
+    port: 9090,
+    cors: true  // Enables CORS for all origins
   }
 })
